@@ -40,6 +40,7 @@ Threads are execution units within a process that enable concurrent task executi
 | Creation Speed | Slower (new process requires memory allocation) | Faster (within same process) |
 | Context Switching | Slower (requires more system resources) | Faster |
 | Stability | One process crashing does not affect others | One thread crashing can terminate the whole process |
+
 **Example:** A network server can handle multiple clients by either creating a new process using `fork()` or using multiple threads to process data more efficiently.
 **In context swithching:** 
 - **[Thread Switching](https://www.geeksforgeeks.org/threads-and-its-types-in-operating-system/) :**  
