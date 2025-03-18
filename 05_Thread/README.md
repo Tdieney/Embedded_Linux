@@ -44,13 +44,13 @@ Threads are execution units within a process that enable concurrent task executi
 **Example:** A network server can handle multiple clients by either creating a new process using `fork()` or using multiple threads to process data more efficiently.
 **In context swithching:** 
 - **[Thread Switching](https://www.geeksforgeeks.org/threads-and-its-types-in-operating-system/) :**  
- - Thread switching is a type of context switching from one thread to another thread in the same process.
- - Thread switching is very efficient and much cheaper because it involves switching out only identities and resources such as the program counter, registers and stack pointers.
- - The cost of thread-to-thread switching is about the same as the cost of entering and exiting the kernel.
-- **[Process Switching](https://www.geeksforgeeks.org/introduction-of-process-management/) **:
- - Process switching is a type of [context switching](https://practice.geeksforgeeks.org/problems/what-is-context-switching) where we switch one process with another process.
- - It involves switching of all the process resources with those needed by a new process.
- - This means switching the memory address space. This includes memory addresses, page tables, and kernel resources, caches in the processor.
+    - Thread switching is a type of context switching from one thread to another thread in the same process.
+    - Thread switching is very efficient and much cheaper because it involves switching out only identities and resources such as the program counter, registers and stack pointers.
+    - The cost of thread-to-thread switching is about the same as the cost of entering and exiting the kernel.
+- **[Process Switching](https://www.geeksforgeeks.org/introduction-of-process-management/):**
+    - Process switching is a type of [context switching](https://practice.geeksforgeeks.org/problems/what-is-context-switching) where we switch one process with another process.
+    - It involves switching of all the process resources with those needed by a new process.
+    - This means switching the memory address space. This includes memory addresses, page tables, and kernel resources, caches in the processor.
 
 ---
 ## 4. Working with Threads
