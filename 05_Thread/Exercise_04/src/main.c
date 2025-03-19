@@ -9,9 +9,6 @@
 #define E_OK            0U
 #define E_NOT_OK        1U
 
-
-volatile unsigned char data_flag = 0;
-
 void print_array(const unsigned char *arr, size_t size) {
     printf("Array: ");
     for (size_t i = 0; i < size; i++) {
