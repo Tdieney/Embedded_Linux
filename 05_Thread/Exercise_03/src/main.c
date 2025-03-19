@@ -37,7 +37,7 @@ static void *producer(void *arg) {
     return NULL;
 }
   
-void *consumer(void *arg) {
+static void *consumer(void *arg) {
     for (int i = 0; i < NUM_ITERATIONS; i++) {
         pthread_mutex_lock(&mutex);
 
