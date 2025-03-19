@@ -61,7 +61,6 @@ static void *consumer(void *arg) {
 int main(int argc, char const *argv[])
 {
     pthread_t producer_tid, consumer_tid;
-    unsigned int i = 0;
 
     if (pthread_mutex_init(&mutex, NULL) != 0) {
         perror("pthread_mutex_init failed");
