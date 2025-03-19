@@ -27,7 +27,10 @@ int main(int argc, char const *argv[])
     pthread_t thread_id[NUM_OF_THREAD];
     unsigned int i = 0;
 
-    pthread_mutex_init(&mutex, NULL);
+    if (pthread_mutex_init(&mutex, NULL) != 0) {
+        perror("pthread_mutex_init failed");
+        return E_NOT_OK;
+    }
 
     for (i = 0; i < NUM_OF_THREAD; i++) {
         if (pthread_create(&thread_id[i], NULL, thread_function, NULL) != 0) {
@@ -45,6 +48,7 @@ int main(int argc, char const *argv[])
     }
 
     printf("Counter: %lu\n", counter);
+    pthread_mutex_destroy(&mutex);
 
     return E_OK;
 }
