@@ -100,8 +100,7 @@ File Descriptor Table → Open File Table → I-node Table
 **Workflow**
 
 <p align="center">
-    <img src="https://github.com/user-attachments/assets/5a790cf6-5473-4dde-9ac6-38c067490536
-" width="500">
+    <img src="https://github.com/user-attachments/assets/5a790cf6-5473-4dde-9ac6-38c067490536" width="500">
 </p>
 ---
 
