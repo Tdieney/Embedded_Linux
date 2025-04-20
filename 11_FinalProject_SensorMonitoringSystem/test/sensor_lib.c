@@ -1,5 +1,4 @@
 #include <sensor_lib.h>
-#include <common.h>
 
 /**
  * Creates a TCP socket
@@ -21,7 +20,7 @@ int create_socket() {
  * @param port Server port
  * @return 0 on success, -1 on failure
  */
-int setup_server_connection(int client_sock, const char* server_ip, uint16 port) {
+int setup_server_connection(int client_sock, const char* server_ip, uint16_t port) {
     struct sockaddr_in server_addr;
     
     // Configure server address
@@ -82,3 +81,4 @@ void print_temp_data(SensorData data) {
     // Flush stdout to ensure immediate display
     fflush(stdout);
 }
+

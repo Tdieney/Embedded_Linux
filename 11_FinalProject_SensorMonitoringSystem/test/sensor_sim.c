@@ -1,16 +1,29 @@
 #include <sensor_lib.h>
+#include <signal.h>
+#include <stdbool.h>
 
-uint8 main(int argc, char *argv[]) {
+volatile sig_atomic_t running = true;
+
+// Signal handler for SIGTERM
+void handle_sigterm(int sig) {
+    running = false;
+}
+
+int main(int argc, char *argv[]) {
     // Validate command line arguments
     if (argc != THREE) {
         fprintf(stderr, "Usage: %s <port>\n", argv[0]);
         return EXIT_FAILURE;
     }
 
-    uint16 port = atoi(argv[ONE]);
-    uint16 ss_id = atoi(argv[TWO]);
+    uint16_t port = atoi(argv[ONE]);
+    uint16_t ss_id = atoi(argv[TWO]);
     int client_sock;
     SensorData temp_data;
+    
+    // Register signals handler
+    signal(SIGTERM, handle_sigterm);
+    signal(SIGINT, handle_sigterm);
     
     // Create socket
     client_sock = create_socket();
@@ -30,7 +43,7 @@ uint8 main(int argc, char *argv[]) {
     srand(time(NULL));
     
     // Main data transmission loop
-    while (ONE) {
+    while (running) {
         temp_data = generate_sensor_data();
         temp_data.id = ss_id;
         
@@ -41,7 +54,7 @@ uint8 main(int argc, char *argv[]) {
         print_temp_data(temp_data);
         
         // Sleep for interval
-        sleep(ONE);
+        usleep(TIMER_100MS);
     }
     
     close(client_sock);

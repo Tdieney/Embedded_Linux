@@ -13,7 +13,7 @@ TEST_DIR := $(CUR_DIR)/test
 INC_DIR := $(CUR_DIR)/include
 
 # Output executables
-NODE_EXE_FILE := $(BIN_DIR)/node
+SS_EXE_FILE := $(BIN_DIR)/sensor
 GW_EXE_FILE := $(BIN_DIR)/gateway
 
 # Includes
@@ -27,7 +27,7 @@ all: sensor_lib gateway
 
 # Sensor lib build
 sensor_lib: $(BUILD_DIR) $(BIN_DIR) $(OBJ_DIR) $(OBJ_FILES)
-	$(CC) $(OBJ_FILES) -o $(NODE_EXE_FILE)
+	$(CC) $(OBJ_FILES) -o $(SS_EXE_FILE)
 
 $(OBJ_DIR)/sensor_lib.o: $(TEST_DIR)/sensor_lib.c
 	$(CC) -c $< -o $@ $(HDR_INC)

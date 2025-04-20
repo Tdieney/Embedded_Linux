@@ -7,15 +7,15 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <time.h>
-#include <types.h>
+#include <common.h>
 
 #define SERVER_IP   "127.0.0.1"
 #define MAX_TEMP    40U
 #define MIN_TEMP    10U
 
 typedef struct {
-    uint16 id;
-    uint16 temperature;
+    uint16_t id;
+    uint16_t temperature;
     time_t timestamp;
 } SensorData;
 
@@ -32,7 +32,7 @@ int create_socket();
  * @param port Server port
  * @return 0 on success, -1 on failure
  */
-int setup_server_connection(int client_sock, const char* server_ip, uint16 port);
+int setup_server_connection(int client_sock, const char* server_ip, uint16_t port);
 
 /**
  * Generates random temperature sensor data
