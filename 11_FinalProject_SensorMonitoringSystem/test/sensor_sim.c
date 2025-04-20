@@ -1,4 +1,4 @@
-#include <sensor_lib.h>
+#include "sensor_lib.h"
 #include <signal.h>
 #include <stdbool.h>
 

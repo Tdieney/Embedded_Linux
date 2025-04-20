@@ -7,7 +7,7 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <time.h>
-#include <common.h>
+#include "common.h"
 
 #define SERVER_IP   "127.0.0.1"
 #define MAX_TEMP    40U
