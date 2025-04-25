@@ -13,14 +13,14 @@ int main() {
     
     // Create the pipe1
     if (pipe(pipe1) == -1) {
-        perror("Pipe 1 creation failed");
+        printf("Pipe 1 creation failed");
         exit(EXIT_FAILURE);
     }
 
     // Fork a child1 process
     pid1 = fork();
     if (pid1 == -1) {
-        perror("Fork 1 failed");
+        printf("Fork 1 failed");
         exit(EXIT_FAILURE);
     }
 
@@ -37,14 +37,14 @@ int main() {
 
         // Create the pipe2
         if (pipe(pipe2) == -1) {
-            perror("Pipe 2 creation failed");
+            printf("Pipe 2 creation failed");
             exit(EXIT_FAILURE);
         }
 
         // Fork a child2 process
         pid2 = fork();
         if (pid2 == -1) {
-            perror("Fork 2 failed");
+            printf("Fork 2 failed");
             exit(EXIT_FAILURE);
         }
 

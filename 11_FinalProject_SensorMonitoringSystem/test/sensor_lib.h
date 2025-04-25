@@ -13,11 +13,13 @@
 #define MAX_TEMP    40U
 #define MIN_TEMP    10U
 
+#define TIMER_100MS 100000UL
+
 typedef struct {
     uint16_t id;
     uint16_t temperature;
     time_t timestamp;
-} SensorData;
+} sensor_data;
 
 /**
  * Creates a TCP socket
@@ -36,9 +38,9 @@ int setup_server_connection(int client_sock, const char* server_ip, uint16_t por
 
 /**
  * Generates random temperature sensor data
- * @return SensorData structure with current reading
+ * @return sensor_data structure with current reading
  */
-SensorData generate_sensor_data();
+sensor_data generate_sensor_data();
 
 /**
  * Sends temperature data to the server
@@ -46,12 +48,12 @@ SensorData generate_sensor_data();
  * @param data Temperature data to send
  * @return Number of bytes sent or -1 on failure
  */
-int send_temperature_data(int client_sock, SensorData data);
+int send_temperature_data(int client_sock, sensor_data data);
 
 /**
  * Prints the sent temperature data
  * @param data Temperature data that was sent
  */
-void print_temp_data(SensorData data);
+void print_temp_data(sensor_data data);
 
 #endif // SENSOR_LIB_H

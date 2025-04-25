@@ -63,26 +63,26 @@ int main(int argc, char const *argv[])
     pthread_t producer_tid, consumer_tid;
 
     if (pthread_mutex_init(&mutex, NULL) != 0) {
-        perror("pthread_mutex_init failed");
+        printf("pthread_mutex_init failed");
         return E_NOT_OK;
     }    
 
     if (pthread_create(&producer_tid, NULL, producer, NULL) != 0) {
-        perror("pthread_create failed");
+        printf("pthread_create failed");
         return E_NOT_OK;
     }
     if (pthread_create(&consumer_tid, NULL, consumer, NULL) != 0) {
-        perror("pthread_create failed");
+        printf("pthread_create failed");
         return E_NOT_OK;
     }
     
     // Wait for both threads are executed
     if (pthread_join(producer_tid, NULL) != 0) {
-        perror("pthread_join failed");
+        printf("pthread_join failed");
         return E_NOT_OK;
     }
     if (pthread_join(consumer_tid, NULL) != 0) {
-        perror("pthread_join failed");
+        printf("pthread_join failed");
         return E_NOT_OK;
     }
 

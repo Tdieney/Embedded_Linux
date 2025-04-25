@@ -46,33 +46,33 @@ int main(int argc, char const *argv[])
     for (i = 0; i < NUM_READERS; i++) {
         reader_ids[i] = i + ONE;
         if (pthread_create(&reader_tids[i], NULL, reader, &reader_ids[i]) != 0) {
-            perror("pthread_create failed");
+            printf("pthread_create failed");
             return E_NOT_OK;
         }
     }
     for (i = 0; i < NUM_WRITERS; i++) {
         writer_ids[i] = i + ONE;
         if (pthread_create(&writer_tids[i], NULL, writer, &writer_ids[i]) != 0) {
-            perror("pthread_create failed");
+            printf("pthread_create failed");
             return E_NOT_OK;
         }
     }
 
     for (i = 0; i < NUM_READERS; i++) {
         if (pthread_join(reader_tids[i], NULL) != 0) {
-            perror("pthread_join failed");
+            printf("pthread_join failed");
             return E_NOT_OK;
         }
     }
     for (i = 0; i < NUM_WRITERS; i++) {
         if (pthread_join(writer_tids[i], NULL) != 0) {
-            perror("pthread_join failed");
+            printf("pthread_join failed");
             return E_NOT_OK;
         }
     }
 
     if (pthread_rwlock_destroy(&rwlock) != 0) {
-        perror("pthread_rwlock_destroy failed");
+        printf("pthread_rwlock_destroy failed");
         return E_NOT_OK;
     };
 

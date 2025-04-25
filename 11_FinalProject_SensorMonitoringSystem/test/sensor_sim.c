@@ -12,14 +12,14 @@ void handle_sigterm(int sig) {
 int main(int argc, char *argv[]) {
     // Validate command line arguments
     if (argc != THREE) {
-        fprintf(stderr, "Usage: %s <port>\n", argv[0]);
+        printf("[ERROR] - Usage: %s <port>\n", argv[0]);
         return EXIT_FAILURE;
     }
 
     uint16_t port = atoi(argv[ONE]);
     uint16_t ss_id = atoi(argv[TWO]);
     int client_sock;
-    SensorData temp_data;
+    sensor_data temp_data;
     
     // Register signals handler
     signal(SIGTERM, handle_sigterm);
@@ -37,7 +37,7 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
     
-    printf("Sensor connected to gateway on port %d\n", port);
+    printf("[INFO] - Sensor connected to gateway on port %d\n", port);
     
     // Initialize the randomizer
     srand(time(NULL));

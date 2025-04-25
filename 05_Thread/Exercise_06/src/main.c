@@ -42,7 +42,7 @@ static void* partial_sum(void* arg) {
 
     // Critical section: Update global sum
     if (pthread_mutex_lock(&mutex) != 0) {
-        perror("pthread_mutex_lock failed");
+        printf("pthread_mutex_lock failed");
         return NULL;
     }
     global_sum += local_sum;
@@ -70,7 +70,7 @@ int main() {
         memcpy(thread_info[i].ThreadInfo_st.local_array, &array[i * PARTIAL_SIZE], PARTIAL_SIZE);
 
         if (pthread_create(&thread_ids[i], NULL, partial_sum, &thread_info[i]) != 0) {
-            perror("pthread_create failed");
+            printf("pthread_create failed");
             return E_NOT_OK;
         }
     }
@@ -78,7 +78,7 @@ int main() {
     // Wait for all threads to finish
     for (i = 0; i < NUM_OF_THREAD; i++) {
         if (pthread_join(thread_ids[i], NULL) != 0) {
-            perror("pthread_join failed");
+            printf("pthread_join failed");
             return E_NOT_OK;
         }
     }

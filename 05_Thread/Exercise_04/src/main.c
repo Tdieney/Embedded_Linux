@@ -21,7 +21,7 @@ static void *count_even(void *arg) {
     unsigned char *numbers = (unsigned char *)arg;
     unsigned char *even_counter = malloc(sizeof(unsigned char)); // Allocate memory for the result
     if (!even_counter) {
-        perror("malloc failed");
+        printf("malloc failed");
         pthread_exit(NULL);
     }
 
@@ -38,7 +38,7 @@ static void *count_odd(void *arg) {
     unsigned char *numbers = (unsigned char *)arg;
     unsigned char *odd_counter = malloc(sizeof(unsigned char)); // Allocate memory for the result
     if (!odd_counter) {
-        perror("malloc failed");
+        printf("malloc failed");
         pthread_exit(NULL);
     }
 
@@ -65,21 +65,21 @@ int main(int argc, char const *argv[])
     unsigned char *even_counter, *odd_counter;
 
     if (pthread_create(&even_tid, NULL, count_even, numbers) != 0) {
-        perror("pthread_create failed");
+        printf("pthread_create failed");
         return E_NOT_OK;
     }
     if (pthread_create(&odd_tid, NULL, count_odd, numbers) != 0) {
-        perror("pthread_create failed");
+        printf("pthread_create failed");
         return E_NOT_OK;
     }
     
     // Wait for both threads are executed
     if (pthread_join(even_tid, (void **)&even_counter) != 0) {
-        perror("pthread_join failed");
+        printf("pthread_join failed");
         return E_NOT_OK;
     }
     if (pthread_join(odd_tid, (void **)&odd_counter) != 0) {
-        perror("pthread_join failed");
+        printf("pthread_join failed");
         return E_NOT_OK;
     }
 

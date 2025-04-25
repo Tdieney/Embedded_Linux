@@ -27,7 +27,7 @@ int main(int argc, char const *argv[])
 
     for (i = 0; i < NUM_OF_THREAD; i++) {
         if (pthread_create(&thread_id[i], NULL, thread_function, NULL) != 0) {
-            perror("pthread_create failed");
+            printf("pthread_create failed");
             return E_NOT_OK;
         }
     }
@@ -35,7 +35,7 @@ int main(int argc, char const *argv[])
     // Wait for both threads are executed
     for (i = 0; i < NUM_OF_THREAD; i++) {
         if (pthread_join(thread_id[i], NULL) != 0) {
-            perror("pthread_join failed");
+            printf("pthread_join failed");
             return E_NOT_OK;
         }
     }

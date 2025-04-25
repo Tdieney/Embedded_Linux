@@ -1,197 +1,78 @@
-#include <main.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <pthread.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <signal.h>
+#include "shm_buffer.h"
+#include "connection_mgr.h"
+#include "data_mgr.h"
+#include "storage_mgr.h"
+#include "log_process.h"
+#include "common.h"
 
-#define MAX_CLIENTS 10
+#define FIFO_NAME "/tmp/fifo_log"
+#define SHM_NAME "/shared_data"
 
-// Global flag for graceful shutdown
-volatile sig_atomic_t running = 1;
+uint8_t main(int argc, char *argv[]) {
+    uint8_t ret_val = EXIT_FAILURE;
 
-// Signal handler for graceful shutdown
-void handle_signal(int sig) {
-    printf("\nShutdown signal received. Closing server...\n");
-    running = 0;
-}
+    if (argc != TWO) {
+        printf("[ERROR] - Usage: %s <port>\n", argv[0]);
+        return ret_val;
+    }
 
-int main(int argc, char *argv[]) {
-    // Validate command line arguments
-    if (argc != 2) {
-        fprintf(stderr, "Usage: %s <port>\n", argv[0]);
+    int port = atoi(argv[1]);
+    shm_buffer_t *shm_buffer = shm_buffer_init(SHM_NAME);
+    if (!shm_buffer) {
+        printf("[ERROR] - Failed to initialize shared memory\n");
+        return ret_val;
+    }
+
+    // Create FIFO if it doesn't exist
+    if (mkfifo(FIFO_NAME, 0666) == ERROR) {
+        printf("[ERROR] - Failed to create FIFO\n");
+        shm_buffer_free(SHM_NAME, shm_buffer);
+        return ret_val;
+    }
+
+    // Fork log process
+    pid_t pid = fork();
+    if (pid < 0) {
+        printf("[ERROR] - Fork failed\n");
+        shm_buffer_free(SHM_NAME, shm_buffer);
+        return ret_val;
+    } else if (pid == 0) {
+        // Child: Run log process
+        ret_val = log_process_run(FIFO_NAME);
+        return ret_val;
+    }
+
+    // Parent: Initialize threads
+    pthread_t connection_mgr, data_mgr, storage_mgr;
+    thread_args_t args = {shm_buffer, port, FIFO_NAME};
+
+    if (pthread_create(&connection_mgr, NULL, connection_mgr_run, &args) != 0 ||
+        pthread_create(&data_mgr, NULL, data_mgr_run, &args) != 0 ||
+        pthread_create(&storage_mgr, NULL, storage_mgr_run, &args) != 0) {
+        printf("[ERROR] - Thread creation failed\n");
+        kill(pid, SIGTERM);
+        shm_buffer_free(SHM_NAME, shm_buffer);
         return EXIT_FAILURE;
     }
 
-    // Setup signal handler for graceful shutdown
-    signal(SIGINT, handle_signal);
-    signal(SIGTERM, handle_signal);
+    // Wait for threads to finish
+    pthread_join(connection_mgr, NULL);
+    pthread_join(data_mgr, NULL);
+    pthread_join(storage_mgr, NULL);
 
-    uint16_t port = (uint16_t)atoi(argv[1]);
-    int server_sock, client_sock;
-    struct sockaddr_in client_addr;
-    socklen_t client_len = sizeof(client_addr);
-    int sensor_counter = 1;
-
-    // Create and setup server socket
-    server_sock = setup_server_socket(port);
-    if (server_sock < 0) {
-        return EXIT_FAILURE;
-    }
-
-    printf("Temperature Gateway Server started on port %d\n", port);
-    printf("Waiting for sensor connections...\n\n");
-
-    // Main server loop
-    while (running) {
-        // Accept new connection (with timeout to check running flag)
-        fd_set readfds;
-        struct timeval tv;
-        FD_ZERO(&readfds);
-        FD_SET(server_sock, &readfds);
-        tv.tv_sec = 1;
-        tv.tv_usec = 0;
-
-        int activity = select(server_sock + 1, &readfds, NULL, NULL, &tv);
-        if (activity < 0) {
-            if (!running) break;
-            perror("Select error");
-            continue;
-        }
-
-        if (activity == 0) continue; // Timeout, check running flag again
-
-        if (FD_ISSET(server_sock, &readfds)) {
-            client_sock = accept(server_sock, (struct sockaddr *)&client_addr, &client_len);
-            if (client_sock < 0) {
-                perror("Accept failed");
-                continue;
-            }
-
-            // Handle client in a new process (simple multi-client handling)
-            pid_t pid = fork();
-            if (pid < 0) {
-                perror("Fork failed");
-                close(client_sock);
-            } else if (pid == 0) {
-                // Child process
-                close(server_sock);
-                process_client_connection(client_sock, &client_addr);
-                exit(EXIT_SUCCESS);
-            } else {
-                // Parent process
-                close(client_sock);
-                sensor_counter++;
-            }
-        }
-    }
-
-    // Clean up
-    close(server_sock);
-    printf("Server shutdown complete.\n");
-    return 0;
+    // Cleanup
+    kill(pid, SIGTERM);
+    shm_buffer_free(SHM_NAME, shm_buffer);
+    unlink(FIFO_NAME);
+    return EXIT_SUCCESS;
 }
-
-/**
- * Sets up the server socket to listen for connections
- * @param port The port to listen on
- * @return Socket file descriptor or -1 on failure
- */
-int setup_server_socket(uint16_t port) {
-    int server_sock;
-    struct sockaddr_in server_addr;
-    int opt = 1;
-
-    // Create socket
-    server_sock = socket(AF_INET, SOCK_STREAM, 0);
-    if (server_sock < 0) {
-        perror("Socket creation failed");
-        return -1;
-    }
-
-    // Set socket options (reuse address and port)
-    if (setsockopt(server_sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
-        perror("Setsockopt failed");
-        close(server_sock);
-        return -1;
-    }
-
-    // Configure server address
-    memset(&server_addr, 0, sizeof(server_addr));
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_addr.s_addr = INADDR_ANY;
-    server_addr.sin_port = htons(port);
-
-    // Bind socket to address and port
-    if (bind(server_sock, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
-        perror("Bind failed");
-        close(server_sock);
-        return -1;
-    }
-
-    // Listen for connections
-    if (listen(server_sock, MAX_CLIENTS) < 0) {
-        perror("Listen failed");
-        close(server_sock);
-        return -1;
-    }
-
-    return server_sock;
-}
-
-/**
- * Handles communication with a connected client
- * @param client_sock Client socket file descriptor
- * @param client_addr Client address information
- */
-void process_client_connection(int client_sock, struct sockaddr_in *client_addr) {
-    SensorData temp_data;
-    char *client_ip = inet_ntoa(client_addr->sin_addr);
-    ssize_t bytes_received;
-
-    if ((bytes_received = recv(client_sock, &temp_data, sizeof(SensorData), 0)) > 0)
-    {
-        printf("New sensor connected: ID #%d from %s:%d\n", 
-            temp_data.id,
-            inet_ntoa(client_addr->sin_addr), 
-            ntohs(client_addr->sin_port));
-
-        print_temperature_data(temp_data, client_ip);
-    }
-
-    // Receive and process data from the client
-    while ((bytes_received = recv(client_sock, &temp_data, sizeof(SensorData), 0)) > 0) {
-        print_temperature_data(temp_data, client_ip);
-    }
-
-    if (bytes_received == 0) {
-        printf("Sensor #%d disconnected.\n", temp_data.id);
-    } else {
-        perror("Receive failed");
-    }
-
-    close(client_sock);
-}
-
-/**
- * Prints the temperature data in a formatted way
- * @param data Temperature data received from client
- * @param client_ip Client IP address
- */
-void print_temperature_data(SensorData data, const char *client_ip) {
-    char *time_str = get_timestamp_string(data.timestamp);
-    
-    printf("%s - Sensor #%d (%s): %d°C\n", 
-           time_str, 
-           data.id,
-           client_ip, 
-           data.temperature);
-    
-    free(time_str);
-    
-    // Add warning for extreme temperatures
-    if (data.temperature > 35) {
-        printf("  ⚠️ WARNING: High temperature detected!\n");
-    } else if (data.temperature < 15) {
-        printf("  ❄️ NOTICE: Low temperature detected.\n");
-    }
-    
-    // Flush stdout to ensure immediate display
-    fflush(stdout);
-}
-

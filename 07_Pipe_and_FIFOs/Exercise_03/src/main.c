@@ -13,14 +13,14 @@ int main() {
     
     // Create the pipe
     if (pipe(fd) == -1) {
-        perror("pipe");
+        printf("pipe");
         exit(EXIT_FAILURE);
     }
 
     // Fork a child process
     pid = fork();
     if (pid == -1) {
-        perror("fork");
+        printf("fork");
         exit(EXIT_FAILURE);
     }
 

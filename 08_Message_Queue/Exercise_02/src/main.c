@@ -26,14 +26,14 @@ int main() {
     // Create message queue for sending string
     mq_msg = mq_open(QUEUE_NAME_MSG, O_CREAT | O_RDWR, 0644, &attr);
     if (mq_msg == (mqd_t)-1) {
-        perror("mq_open msg");
+        printf("mq_open msg");
         exit(1);
     }
 
     // Create message queue for sending count
     mq_count = mq_open(QUEUE_NAME_COUNT, O_CREAT | O_RDWR, 0644, &attr);
     if (mq_count == (mqd_t)-1) {
-        perror("mq_open count");
+        printf("mq_open count");
         mq_close(mq_msg);
         mq_unlink(QUEUE_NAME_MSG);
         exit(1);
@@ -41,7 +41,7 @@ int main() {
 
     pid = fork();
     if (pid < 0) {
-        perror("fork");
+        printf("fork");
         mq_close(mq_msg);
         mq_close(mq_count);
         mq_unlink(QUEUE_NAME_MSG);
@@ -54,13 +54,13 @@ int main() {
         
         // Send message to child
         if (mq_send(mq_msg, message, strlen(message) + 1, 0) == -1) {
-            perror("mq_send msg");
+            printf("mq_send msg");
         }
 
         // Receive count from child
         ssize_t bytes_read = mq_receive(mq_count, buffer, MAX_MSG_SIZE, NULL);
         if (bytes_read == -1) {
-            perror("mq_receive count");
+            printf("mq_receive count");
         } else {
             buffer[bytes_read] = '\0';
             printf("Parent received: Number of characters = %s\n", buffer);
@@ -78,7 +78,7 @@ int main() {
         // Receive message from parent
         ssize_t bytes_read = mq_receive(mq_msg, buffer, MAX_MSG_SIZE, NULL);
         if (bytes_read == -1) {
-            perror("mq_receive msg");
+            printf("mq_receive msg");
             exit(1);
         }
 
@@ -92,7 +92,7 @@ int main() {
 
         // Send count to parent
         if (mq_send(mq_count, count_str, strlen(count_str) + 1, 0) == -1) {
-            perror("mq_send count");
+            printf("mq_send count");
         }
 
         // Close queues

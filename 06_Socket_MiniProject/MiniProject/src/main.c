@@ -9,9 +9,9 @@
 #include <ifaddrs.h>
 #include <netdb.h>
 
-#define MAX_CONNECTIONS 10
-#define MAX_MESSAGE_LEN 100
-#define BUFFER_SIZE 128
+#define MAX_CONNECTIONS 10U
+#define MAX_MESSAGE_LEN 100U
+#define BUFFER_SIZE     128U
 
 // Structure to store connection information
 typedef struct {
@@ -54,7 +54,7 @@ int main(int argc, char *argv[]) {
     // Start server thread to listen for incoming connections
     pthread_t server_tid;
     if (pthread_create(&server_tid, NULL, server_thread, NULL) != 0) {
-        perror("Failed to start server thread");
+        printf("Failed to start server thread");
         exit(EXIT_FAILURE);
     }
 
@@ -73,14 +73,14 @@ int main(int argc, char *argv[]) {
 void *server_thread(void *arg) {
     int server_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (server_fd < 0) {
-        perror("Socket creation failed");
+        printf("Socket creation failed");
         exit(EXIT_FAILURE);
     }
 
     // Enable SO_REUSEADDR to allow port reuse
     int opt = 1;
     if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
-        perror("setsockopt failed");
+        printf("setsockopt failed");
         close(server_fd);
         exit(EXIT_FAILURE);
     }
@@ -91,13 +91,13 @@ void *server_thread(void *arg) {
     server_addr.sin_port = htons(listen_port);
 
     if (bind(server_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
-        perror("Bind failed");
+        printf("Bind failed");
         close(server_fd);
         exit(EXIT_FAILURE);
     }
 
     if (listen(server_fd, 5) < 0) {
-        perror("Listen failed");
+        printf("Listen failed");
         close(server_fd);
         exit(EXIT_FAILURE);
     }
@@ -109,7 +109,7 @@ void *server_thread(void *arg) {
         socklen_t client_len = sizeof(client_addr);
         int client_fd = accept(server_fd, (struct sockaddr *)&client_addr, &client_len);
         if (client_fd < 0) {
-            perror("Accept failed");
+            printf("Accept failed");
             continue;
         }
 
@@ -236,7 +236,7 @@ void handle_command(char *command) {
         // Create a new connection
         int client_fd = socket(AF_INET, SOCK_STREAM, 0);
         if (client_fd < 0) {
-            perror("Socket creation failed");
+            printf("Socket creation failed");
             return;
         }
 
@@ -246,7 +246,7 @@ void handle_command(char *command) {
         inet_pton(AF_INET, ip, &server_addr.sin_addr);
 
         if (connect(client_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
-            perror("Connection failed");
+            printf("Connection failed");
             close(client_fd);
             return;
         }
@@ -318,7 +318,7 @@ void handle_command(char *command) {
 
         int client_fd = connections[id].socket_fd;
         if (send(client_fd, message, strlen(message) + 1, 0) < 0) {
-            perror("Send failed");
+            printf("Send failed");
             cleanup_connection(id);
         } else {
             printf("Message sent successfully to ID %d.\n", id);
@@ -359,7 +359,7 @@ char *get_local_ip() {
     char *ip = NULL;
 
     if (getifaddrs(&ifaddr) == -1) {
-        perror("getifaddrs failed");
+        printf("getifaddrs failed");
         return NULL;
     }
 

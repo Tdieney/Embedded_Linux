@@ -25,13 +25,13 @@ int main() {
     // Create message queue
     mq = mq_open(q_name, O_CREAT | O_RDWR, 0644, &attr);
     if (mq == (mqd_t)-1) {
-        perror("mq_open");
+        printf("mq_open");
         exit(1);
     }
 
     pid = fork();
     if (pid < 0) {
-        perror("fork");
+        printf("fork");
         mq_close(mq);
         mq_unlink(q_name);
         exit(1);
@@ -42,7 +42,7 @@ int main() {
         
         // Send message
         if (mq_send(mq, message, strlen(message) + 1, 0) == -1) {
-            perror("mq_send");
+            printf("mq_send");
         }
 
         // Wait for child to finish
@@ -55,7 +55,7 @@ int main() {
         // Receive message
         ssize_t bytes_read = mq_receive(mq, buffer, MAX_MSG_SIZE, NULL);
         if (bytes_read == -1) {
-            perror("mq_receive");
+            printf("mq_receive");
             exit(1);
         }
 

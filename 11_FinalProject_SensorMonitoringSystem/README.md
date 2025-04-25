@@ -56,7 +56,7 @@ The Sensor Monitoring System is designed to collect, process, and store temperat
 ## Directory Structure
 ```
 sensor_gateway/
-├── src/
+├── asw/
 │   ├── main.c              # Main process and thread initialization
 │   ├── connection_mgr.c    # Connection manager thread logic
 │   ├── data_mgr.c          # Data manager thread logic

@@ -26,14 +26,14 @@ int main() {
     // Create message queue
     mq = mq_open(QUEUE_NAME, O_CREAT | O_RDWR, 0644, &attr);
     if (mq == (mqd_t)-1) {
-        perror("mq_open");
+        printf("mq_open");
         exit(1);
     }
 
     // Fork first child
     pid1 = fork();
     if (pid1 < 0) {
-        perror("fork pid1");
+        printf("fork pid1");
         mq_close(mq);
         mq_unlink(QUEUE_NAME);
         exit(1);
@@ -43,7 +43,7 @@ int main() {
         // Receive message from parent
         ssize_t bytes_read = mq_receive(mq, buffer, MAX_MSG_SIZE, NULL);
         if (bytes_read == -1) {
-            perror("child1 mq_receive");
+            printf("child1 mq_receive");
             mq_close(mq);
             exit(1);
         }
@@ -59,7 +59,7 @@ int main() {
 
         // Send uppercase string back to queue
         if (mq_send(mq, buffer, strlen(buffer) + 1, 0) == -1) {
-            perror("child1 mq_send");
+            printf("child1 mq_send");
             mq_close(mq);
             exit(1);
         }
@@ -72,7 +72,7 @@ int main() {
     // Fork second child
     pid2 = fork();
     if (pid2 < 0) {
-        perror("fork pid2");
+        printf("fork pid2");
         mq_close(mq);
         mq_unlink(QUEUE_NAME);
         exit(1);
@@ -82,7 +82,7 @@ int main() {
         // Receive message from child 1
         ssize_t bytes_read = mq_receive(mq, buffer, MAX_MSG_SIZE, NULL);
         if (bytes_read == -1) {
-            perror("child2 mq_receive");
+            printf("child2 mq_receive");
             mq_close(mq);
             exit(1);
         }
@@ -100,7 +100,7 @@ int main() {
     
     // Send message to child 1
     if (mq_send(mq, message, strlen(message) + 1, 0) == -1) {
-        perror("parent mq_send");
+        printf("parent mq_send");
     }
     printf("Parent sent: %s\n", message);
 
