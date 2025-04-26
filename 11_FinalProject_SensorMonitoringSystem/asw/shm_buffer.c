@@ -2,24 +2,30 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include <sys/mman.h>
-#include <sys/stat.h>
 #include <unistd.h>
 #include <string.h>
 #include <stdbool.h>
 #include "common.h"
 #include "shm_buffer.h"
 
+/**
+ * @brief Initialize a POSIX shared memory buffer for inter-process communication.
+ *
+ * @param name Name of the shared memory object.
+ * @return Pointer to the mapped shm_buffer_t structure, or NULL on failure.
+ */
 shm_buffer_t *shm_buffer_init(const char *name) {
+    shm_unlink(name); // Try to unlink old shared memory
     // Create or open shared memory object
-    int fd = shm_open(name, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
+    int fd = shm_open(name, O_CREAT | O_RDWR, PERM_RW_ALL);
     if (fd < 0) {
-        printf("[ERROR] - shm_open failed");
+        perror("[ERROR] - shm_open failed");
         return NULL;
     }
 
     // Set size of shared memory
     if (ftruncate(fd, sizeof(shm_buffer_t)) < 0) {
-        printf("[ERROR] - ftruncate failed");
+        perror("[ERROR] - ftruncate failed");
         close(fd);
         return NULL;
     }
@@ -28,7 +34,7 @@ shm_buffer_t *shm_buffer_init(const char *name) {
     shm_buffer_t *buffer = mmap(NULL, sizeof(shm_buffer_t), PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
     close(fd);
     if (buffer == MAP_FAILED) {
-        printf("[ERROR] - mmap failed");
+        perror("[ERROR] - mmap failed");
         return NULL;
     }
 
@@ -49,6 +55,12 @@ shm_buffer_t *shm_buffer_init(const char *name) {
     return buffer;
 }
 
+/**
+ * @brief Unmap and remove a POSIX shared memory buffer.
+ *
+ * @param name Name of the shared memory object to unlink.
+ * @param buffer Pointer to the mapped shm_buffer_t to unmap and destroy.
+ */
 void shm_buffer_free(const char *name, shm_buffer_t *buffer) {
     if (!buffer) return;
     pthread_mutex_destroy(&buffer->mutex);
@@ -56,11 +68,18 @@ void shm_buffer_free(const char *name, shm_buffer_t *buffer) {
     shm_unlink(name);
 }
 
+/**
+ * @brief Insert a sensor data item into the shared memory buffer (thread-safe).
+ *
+ * @param buffer Pointer to the shared memory buffer.
+ * @param data Pointer to the sensor data to insert.
+ * @return EXIT_SUCCESS on success, or ERROR if the buffer is full.
+ */
 int shm_buffer_insert(shm_buffer_t *buffer, sensor_data *data) {
     pthread_mutex_lock(&buffer->mutex);
     if (buffer->count >= MAX_SENSOR_BUFFER) {
         pthread_mutex_unlock(&buffer->mutex);
-        printf("[ERROR] - Shared data is full.");
+        perror("[ERROR] - Shared data is full.");
         return ERROR;
     }
 
@@ -68,9 +87,16 @@ int shm_buffer_insert(shm_buffer_t *buffer, sensor_data *data) {
     buffer->tail = (buffer->tail + ONE) % MAX_SENSOR_BUFFER;
     buffer->count++;
     pthread_mutex_unlock(&buffer->mutex);
-    return 0;
+    return EXIT_SUCCESS;
 }
 
+/**
+ * @brief Remove a sensor data item from the shared memory buffer (thread-safe).
+ *
+ * @param buffer Pointer to the shared memory buffer.
+ * @param data Pointer to store the removed sensor data.
+ * @return EXIT_SUCCESS on success, or ERROR if the buffer is empty.
+ */
 int shm_buffer_remove(shm_buffer_t *buffer, sensor_data *data) {
     pthread_mutex_lock(&buffer->mutex);
     if (buffer->count == 0) {
@@ -82,5 +108,5 @@ int shm_buffer_remove(shm_buffer_t *buffer, sensor_data *data) {
     buffer->head = (buffer->head + ONE) % MAX_SENSOR_BUFFER;
     buffer->count--;
     pthread_mutex_unlock(&buffer->mutex);
-    return 0;
+    return EXIT_SUCCESS;
 }

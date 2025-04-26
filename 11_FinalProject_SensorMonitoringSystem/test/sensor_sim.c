@@ -12,7 +12,7 @@ void handle_sigterm(int sig) {
 int main(int argc, char *argv[]) {
     // Validate command line arguments
     if (argc != THREE) {
-        printf("[ERROR] - Usage: %s <port>\n", argv[0]);
+        printf("[ERROR] - Usage: %s <port> <sensor_id>\n", argv[0]);
         return EXIT_FAILURE;
     }
 

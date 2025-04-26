@@ -77,5 +77,4 @@ $(OBJ_DIR):
 
 # Clean
 clean:
-	rm -rf $(BIN_DIR)/*
-	rm -rf $(OBJ_DIR)/*
+	rm -rf $(BIN_DIR)/* $(OBJ_DIR)/* *.log *.db

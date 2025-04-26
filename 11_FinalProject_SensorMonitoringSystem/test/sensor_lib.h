@@ -22,13 +22,13 @@ typedef struct {
 } sensor_data;
 
 /**
- * Creates a TCP socket
+ * @brief Creates a TCP socket
  * @return socket file descriptor or -1 on failure
  */
 int create_socket();
 
 /**
- * Sets up connection to the server
+ * @brief Sets up connection to the server
  * @param client_sock Socket file descriptor
  * @param server_ip Server IP address
  * @param port Server port
@@ -37,13 +37,13 @@ int create_socket();
 int setup_server_connection(int client_sock, const char* server_ip, uint16_t port);
 
 /**
- * Generates random temperature sensor data
+ * @brief Generates random temperature sensor data
  * @return sensor_data structure with current reading
  */
 sensor_data generate_sensor_data();
 
 /**
- * Sends temperature data to the server
+ * @brief Sends temperature data to the server
  * @param client_sock Socket file descriptor
  * @param data Temperature data to send
  * @return Number of bytes sent or -1 on failure
@@ -51,7 +51,7 @@ sensor_data generate_sensor_data();
 int send_temperature_data(int client_sock, sensor_data data);
 
 /**
- * Prints the sent temperature data
+ * @brief Prints the sent temperature data
  * @param data Temperature data that was sent
  */
 void print_temp_data(sensor_data data);

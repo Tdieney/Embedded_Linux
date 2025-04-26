@@ -7,6 +7,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <sys/mman.h>
+#include <sys/wait.h>
 #include <signal.h>
 #include "shm_buffer.h"
 #include "connection_mgr.h"
@@ -20,22 +21,24 @@
 
 uint8_t main(int argc, char *argv[]) {
     uint8_t ret_val = EXIT_FAILURE;
+    int status;
 
     if (argc != TWO) {
-        printf("[ERROR] - Usage: %s <port>\n", argv[0]);
+        printf("[ERROR] - Usage: %s <port>", argv[0]);
         return ret_val;
     }
 
     int port = atoi(argv[1]);
     shm_buffer_t *shm_buffer = shm_buffer_init(SHM_NAME);
     if (!shm_buffer) {
-        printf("[ERROR] - Failed to initialize shared memory\n");
+        perror("[ERROR] - Failed to initialize shared memory");
         return ret_val;
     }
+    printf("[INFO] - Shared memory is initialized successfully.\n");
 
-    // Create FIFO if it doesn't exist
+    unlink(FIFO_NAME); // Delete old FIFO if it existed
     if (mkfifo(FIFO_NAME, 0666) == ERROR) {
-        printf("[ERROR] - Failed to create FIFO\n");
+        perror("[ERROR] - Failed to create FIFO");
         shm_buffer_free(SHM_NAME, shm_buffer);
         return ret_val;
     }
@@ -43,13 +46,13 @@ uint8_t main(int argc, char *argv[]) {
     // Fork log process
     pid_t pid = fork();
     if (pid < 0) {
-        printf("[ERROR] - Fork failed\n");
+        perror("[ERROR] - Fork failed");
         shm_buffer_free(SHM_NAME, shm_buffer);
         return ret_val;
     } else if (pid == 0) {
         // Child: Run log process
         ret_val = log_process_run(FIFO_NAME);
-        return ret_val;
+        exit(ret_val);
     }
 
     // Parent: Initialize threads
@@ -59,7 +62,7 @@ uint8_t main(int argc, char *argv[]) {
     if (pthread_create(&connection_mgr, NULL, connection_mgr_run, &args) != 0 ||
         pthread_create(&data_mgr, NULL, data_mgr_run, &args) != 0 ||
         pthread_create(&storage_mgr, NULL, storage_mgr_run, &args) != 0) {
-        printf("[ERROR] - Thread creation failed\n");
+        perror("[ERROR] - Thread creation failed");
         kill(pid, SIGTERM);
         shm_buffer_free(SHM_NAME, shm_buffer);
         return EXIT_FAILURE;
@@ -68,11 +71,12 @@ uint8_t main(int argc, char *argv[]) {
     // Wait for threads to finish
     pthread_join(connection_mgr, NULL);
     pthread_join(data_mgr, NULL);
-    pthread_join(storage_mgr, NULL);
+    // pthread_join(storage_mgr, NULL);
 
     // Cleanup
-    kill(pid, SIGTERM);
+    waitpid(pid, &status, 0);
     shm_buffer_free(SHM_NAME, shm_buffer);
     unlink(FIFO_NAME);
+
     return EXIT_SUCCESS;
 }
